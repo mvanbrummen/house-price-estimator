@@ -23,16 +23,12 @@ func main() {
 	})
 
 	r.GET("/search", func(c *gin.Context) {
-		log.Println(c.Query("q"))
-
 		suggestions, err := gateway.GetSuggestions(c.Query("q"))
 
 		log.Println(suggestions)
 
 		if err != nil {
-			c.JSON(500, gin.H{
-				"error": err.Error(),
-			})
+			serverError(err, c)
 			return
 		}
 
@@ -45,13 +41,15 @@ func main() {
 		id, err := strconv.Atoi(idParam)
 
 		if err != nil {
-			panic(err)
+			serverError(err, c)
+			return
 		}
 
 		valuation, err := gateway.GetValuation(id)
 
 		if err != nil {
-			panic(err)
+			serverError(err, c)
+			return
 		}
 
 		model := struct {
@@ -72,6 +70,13 @@ func main() {
 	})
 
 	r.Run(":8080")
+}
+
+func serverError(err error, c *gin.Context) {
+	log.Println(err)
+	c.JSON(500, gin.H{
+		"error": err.Error(),
+	})
 }
 
 func mustGetEnv(key string) string {
