@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"sync"
 
 	"github.com/go-resty/resty/v2"
 )
@@ -13,6 +14,8 @@ type PropertyGateway struct {
 	accessToken  string
 	clientId     string
 	clientSecret string
+
+	mu sync.RWMutex
 }
 
 type AccessResponse struct {
@@ -20,12 +23,16 @@ type AccessResponse struct {
 }
 
 func NewPropertyGateway(baseUrl string, clientId string, clientSecret string, client *resty.Client) *PropertyGateway {
-	return &PropertyGateway{
+	p := &PropertyGateway{
 		baseUrl:      baseUrl,
 		client:       client,
 		clientId:     clientId,
 		clientSecret: clientSecret,
 	}
+
+	p.GetAccessToken()
+
+	return p
 }
 
 func (p *PropertyGateway) GetSuggestions(query string) {
@@ -42,7 +49,9 @@ func (p *PropertyGateway) GetAccessToken() {
 
 	body := resp.Result().(*AccessResponse)
 
+	p.mu.Lock()
 	p.accessToken = body.AccessToken
+	p.mu.Unlock()
 
 	log.Println(p.accessToken)
 }
