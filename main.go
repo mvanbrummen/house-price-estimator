@@ -1,6 +1,7 @@
 package main
 
 import (
+	"net/http"
 	"os"
 
 	"github.com/gin-gonic/gin"
@@ -13,8 +14,15 @@ func main() {
 
 	r := gin.Default()
 
+	r.LoadHTMLGlob("static/templates/*")
+
+	r.GET("/", func(c *gin.Context) {
+
+		c.HTML(http.StatusOK, "index.html", nil)
+	})
+
 	r.GET("/health", func(c *gin.Context) {
-		c.JSON(200, gin.H{
+		c.JSON(http.StatusOK, gin.H{
 			"status": "UP",
 		})
 	})
