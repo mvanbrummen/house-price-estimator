@@ -7,13 +7,13 @@
     <form action="/search">
       <h1>Valuation Estimate</h1>
 
-      <h2>Address:</h2>
+      <h2>Address: {{.Address}}</h2>
 
       <div>
-        <p>Low:</p>
-        <p>Estimate:</p>
-        <p>High:</p>
-        <p>Confidence:</p>
+        <p>Low: {{ .Valuation.LowEstimate }}</p>
+        <p>Estimate: {{.Valuation.Estimate }}</p>
+        <p>High: {{ .Valuation.HighEstimate }}</p>
+        <p>Confidence: {{ .Valuation.Confidence }}</p>
       </div>
     </form>
   </body>

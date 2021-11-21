@@ -33,6 +33,13 @@ type Suggestion struct {
 	Suggestion string `json:"suggestion,omitempty"`
 }
 
+type ValuationResponse struct {
+	Confidence   string `json:"confidence,omitempty"`
+	Estimate     int    `json:"estimate,omitempty"`
+	HighEstimate int    `json:"highEstimate,omitempty"`
+	LowEstimate  int    `json:"lowEstimate,omitempty"`
+}
+
 func NewPropertyGateway(baseUrl string, clientId string, clientSecret string, client *resty.Client) *PropertyGateway {
 	p := &PropertyGateway{
 		baseUrl:      baseUrl,
@@ -44,6 +51,27 @@ func NewPropertyGateway(baseUrl string, clientId string, clientSecret string, cl
 	p.GetAccessToken()
 
 	return p
+}
+
+func (p *PropertyGateway) GetValuation(propertyId int) (*ValuationResponse, error) {
+	resp, err := p.client.R().
+		SetAuthToken(p.accessToken).
+		SetResult(&ValuationResponse{}).
+		Get(fmt.Sprintf("%s/avm/au/properties/%d/avm/intellival/consumer/current", p.baseUrl, propertyId))
+
+	if err != nil {
+		return nil, err
+	}
+
+	log.Println(resp)
+
+	if resp.StatusCode() != http.StatusOK {
+		return nil, errors.New(fmt.Sprintf("Suggest returned %d status code", resp.StatusCode()))
+	}
+
+	body := resp.Result().(*ValuationResponse)
+
+	return body, nil
 }
 
 func (p *PropertyGateway) GetSuggestions(query string) (*SuggestResponse, error) {

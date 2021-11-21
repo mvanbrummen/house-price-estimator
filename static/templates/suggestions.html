@@ -9,7 +9,9 @@
 
       {{ range .Suggestions }}
       <li>
-        <a href="/result/{{.PropertyId}}">{{.Suggestion}}</a>
+        <a href="/result/{{.PropertyId}}?address={{.Suggestion}}"
+          >{{.Suggestion}}</a
+        >
       </li>
       {{end}}
     </form>

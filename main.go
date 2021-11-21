@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-resty/resty/v2"
@@ -39,8 +40,29 @@ func main() {
 	})
 
 	r.GET("/result/:propertyId", func(c *gin.Context) {
+		idParam := c.Param(("propertyId"))
 
-		c.HTML(http.StatusOK, "result.html", nil)
+		id, err := strconv.Atoi(idParam)
+
+		if err != nil {
+			panic(err)
+		}
+
+		valuation, err := gateway.GetValuation(id)
+
+		if err != nil {
+			panic(err)
+		}
+
+		model := struct {
+			Valuation *ValuationResponse
+			Address   string
+		}{
+			Valuation: valuation,
+			Address:   c.Query("address"),
+		}
+
+		c.HTML(http.StatusOK, "result.html", model)
 	})
 
 	r.GET("/health", func(c *gin.Context) {
