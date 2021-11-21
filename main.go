@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-resty/resty/v2"
+	"github.com/leekchan/accounting"
 )
 
 func main() {
@@ -52,13 +53,7 @@ func main() {
 			return
 		}
 
-		model := struct {
-			Valuation *ValuationResponse
-			Address   string
-		}{
-			Valuation: valuation,
-			Address:   c.Query("address"),
-		}
+		model := mapValuation(valuation, c.Query("address"))
 
 		c.HTML(http.StatusOK, "result.html", model)
 	})
@@ -70,6 +65,25 @@ func main() {
 	})
 
 	r.Run(":8080")
+}
+
+type Valuation struct {
+	LowEstimate  string
+	Estimate     string
+	HighEstimate string
+	Confidence   string
+	Address      string
+}
+
+func mapValuation(v *ValuationResponse, address string) *Valuation {
+	ac := accounting.Accounting{Symbol: "$", Precision: 0}
+	return &Valuation{
+		LowEstimate:  ac.FormatMoney(v.LowEstimate),
+		Estimate:     ac.FormatMoney(v.Estimate),
+		HighEstimate: ac.FormatMoney(v.HighEstimate),
+		Confidence:   v.Confidence,
+		Address:      address,
+	}
 }
 
 func serverError(err error, c *gin.Context) {
