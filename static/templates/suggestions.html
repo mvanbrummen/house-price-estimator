@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>House Price Estimator</title>
+  </head>
+  <body>
+    <form action="/search">
+      <h1>Suggestions</h1>
+
+      {{ range .Suggestions }}
+      <li>
+        <a href="/result/{{.PropertyId}}">{{.Suggestion}}</a>
+      </li>
+      {{end}}
+    </form>
+  </body>
+</html>
