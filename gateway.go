@@ -20,26 +20,6 @@ type PropertyGateway struct {
 	mu sync.RWMutex
 }
 
-type AccessResponse struct {
-	AccessToken string `json:"access_token,omitempty"`
-}
-
-type SuggestResponse struct {
-	Suggestions []Suggestion `json:"suggestions,omitempty"`
-}
-
-type Suggestion struct {
-	PropertyId int    `json:"propertyId,omitempty"`
-	Suggestion string `json:"suggestion,omitempty"`
-}
-
-type ValuationResponse struct {
-	Confidence   string `json:"confidence,omitempty"`
-	Estimate     int    `json:"estimate,omitempty"`
-	HighEstimate int    `json:"highEstimate,omitempty"`
-	LowEstimate  int    `json:"lowEstimate,omitempty"`
-}
-
 func NewPropertyGateway(baseUrl string, clientId string, clientSecret string, client *resty.Client) *PropertyGateway {
 	p := &PropertyGateway{
 		baseUrl:      baseUrl,
@@ -57,6 +37,7 @@ func (p *PropertyGateway) GetValuation(propertyId int) (*ValuationResponse, erro
 	resp, err := p.client.R().
 		SetAuthToken(p.accessToken).
 		SetResult(&ValuationResponse{}).
+		SetError(&ErrorResponse{}).
 		Get(fmt.Sprintf("%s/avm/au/properties/%d/avm/intellival/consumer/current", p.baseUrl, propertyId))
 
 	if err != nil {
@@ -66,7 +47,7 @@ func (p *PropertyGateway) GetValuation(propertyId int) (*ValuationResponse, erro
 	log.Println(resp)
 
 	if resp.StatusCode() != http.StatusOK {
-		return nil, errors.New(fmt.Sprintf("Suggest returned %d status code", resp.StatusCode()))
+		return nil, errors.New(fmt.Sprintf("Valuation returned %d status code: %s", resp.StatusCode(), getErrorMessage(resp)))
 	}
 
 	body := resp.Result().(*ValuationResponse)
@@ -80,6 +61,7 @@ func (p *PropertyGateway) GetSuggestions(query string) (*SuggestResponse, error)
 		SetQueryParam("suggestionTypes", "address").
 		SetAuthToken(p.accessToken).
 		SetResult(&SuggestResponse{}).
+		SetError(&ErrorResponse{}).
 		Get(fmt.Sprintf("%s/property/au/v2/suggest.json", p.baseUrl))
 
 	if err != nil {
@@ -89,10 +71,31 @@ func (p *PropertyGateway) GetSuggestions(query string) (*SuggestResponse, error)
 	log.Println(resp)
 
 	if resp.StatusCode() != http.StatusOK {
-		return nil, errors.New(fmt.Sprintf("Suggest returned %d status code", resp.StatusCode()))
+		return nil, errors.New(fmt.Sprintf("Suggest returned %d status code: %s", resp.StatusCode(), getErrorMessage(resp)))
 	}
 
 	body := resp.Result().(*SuggestResponse)
+
+	return body, nil
+}
+
+func (p *PropertyGateway) GetImagery(id int) (*ImageryResponse, error) {
+	resp, err := p.client.R().
+		SetAuthToken(p.accessToken).
+		SetResult(&ImageryResponse{}).
+		Get(fmt.Sprintf("%s/property-details/au/properties/%d/images", p.baseUrl, id))
+
+	if err != nil {
+		return nil, err
+	}
+
+	log.Println(resp)
+
+	if resp.StatusCode() != http.StatusOK {
+		return nil, errors.New(fmt.Sprintf("Imagery returned %d status code: %s", resp.StatusCode(), getErrorMessage(resp)))
+	}
+
+	body := resp.Result().(*ImageryResponse)
 
 	return body, nil
 }
@@ -113,4 +116,14 @@ func (p *PropertyGateway) GetAccessToken() {
 	p.mu.Unlock()
 
 	log.Println(p.accessToken)
+}
+
+func getErrorMessage(resp *resty.Response) string {
+	body := resp.Error().(*ErrorResponse)
+
+	errorMessage := ""
+	for _, e := range body.Errors {
+		errorMessage += " " + e.Msg
+	}
+	return errorMessage
 }
