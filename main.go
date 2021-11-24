@@ -70,18 +70,14 @@ func resultHandler(c *gin.Context) {
 		return
 	}
 
-	model := mapValuation(valuation, c.Query("address"))
+	attributes, err := gateway.GetAttributes(id)
 
-	model.DefaultImageUrl = imagery.DefaultImage.MediumPhotoUrl
-
-	secondaryImages := make([]string, 0, len(imagery.SecondaryImageList))
-	for _, i := range imagery.SecondaryImageList {
-		secondaryImages = append(secondaryImages, i.MediumPhotoUrl)
+	if err != nil {
+		serverError(err, c)
+		return
 	}
 
-	log.Println(secondaryImages)
-
-	model.SecondaryImageUrls = secondaryImages[:12]
+	model := mapValuation(valuation, imagery, attributes, c.Query("address"))
 
 	c.HTML(http.StatusOK, "result.html", model)
 }

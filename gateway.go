@@ -79,10 +79,33 @@ func (p *PropertyGateway) GetSuggestions(query string) (*SuggestResponse, error)
 	return body, nil
 }
 
+func (p *PropertyGateway) GetAttributes(id int) (*AttributesResponse, error) {
+	resp, err := p.client.R().
+		SetAuthToken(p.accessToken).
+		SetResult(&AttributesResponse{}).
+		SetError(&ErrorResponse{}).
+		Get(fmt.Sprintf("%s/property-details/au/properties/%d/attributes/core", p.baseUrl, id))
+
+	if err != nil {
+		return nil, err
+	}
+
+	log.Println(resp)
+
+	if resp.StatusCode() != http.StatusOK {
+		return nil, errors.New(fmt.Sprintf("Attributes returned %d status code: %s", resp.StatusCode(), getErrorMessage(resp)))
+	}
+
+	body := resp.Result().(*AttributesResponse)
+
+	return body, nil
+}
+
 func (p *PropertyGateway) GetImagery(id int) (*ImageryResponse, error) {
 	resp, err := p.client.R().
 		SetAuthToken(p.accessToken).
 		SetResult(&ImageryResponse{}).
+		SetError(&ErrorResponse{}).
 		Get(fmt.Sprintf("%s/property-details/au/properties/%d/images", p.baseUrl, id))
 
 	if err != nil {

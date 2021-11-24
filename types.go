@@ -6,6 +6,14 @@ type AccessResponse struct {
 	AccessToken string `json:"access_token,omitempty"`
 }
 
+type AttributesResponse struct {
+	Baths        int    `json:"baths,omitempty"`
+	Beds         int    `json:"beds,omitempty"`
+	CarSpaces    int    `json:"carSpaces,omitempty"`
+	LandArea     int    `json:"landArea,omitempty"`
+	PropertyType string `json:"propertyType,omitempty"`
+}
+
 type SuggestResponse struct {
 	Suggestions []Suggestion `json:"suggestions,omitempty"`
 }
@@ -50,15 +58,35 @@ type Valuation struct {
 	Address            string
 	DefaultImageUrl    string
 	SecondaryImageUrls []string
+	Beds               int
+	Baths              int
+	Cars               int
+	LandArea           int
+	PropertyType       string
 }
 
-func mapValuation(v *ValuationResponse, address string) *Valuation {
+func mapValuation(v *ValuationResponse, imagery *ImageryResponse, attributes *AttributesResponse, address string) *Valuation {
 	ac := accounting.Accounting{Symbol: "$", Precision: 0}
+
+	secondaryImages := make([]string, 0, len(imagery.SecondaryImageList))
+	for _, i := range imagery.SecondaryImageList {
+		secondaryImages = append(secondaryImages, i.MediumPhotoUrl)
+	}
+
 	return &Valuation{
 		LowEstimate:  ac.FormatMoney(v.LowEstimate),
 		Estimate:     ac.FormatMoney(v.Estimate),
 		HighEstimate: ac.FormatMoney(v.HighEstimate),
 		Confidence:   v.Confidence,
 		Address:      address,
+
+		Beds:         attributes.Baths,
+		Baths:        attributes.Baths,
+		Cars:         attributes.CarSpaces,
+		LandArea:     attributes.LandArea,
+		PropertyType: attributes.PropertyType,
+
+		DefaultImageUrl:    imagery.DefaultImage.MediumPhotoUrl,
+		SecondaryImageUrls: secondaryImages[:12],
 	}
 }

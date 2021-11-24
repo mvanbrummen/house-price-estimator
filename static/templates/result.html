@@ -20,7 +20,7 @@
 
       <h4>{{.Address}}</h4>
 
-      <div>
+      <div class="row row-cols-2 margin-bottom">
         <p class="fw-bold">
           Confidence: {{ if (eq .Confidence "HIGH") }}
           <span class="badge bg-primary rounded-pill">{{ .Confidence }}</span>
@@ -30,6 +30,12 @@
           <span class="badge bg-warning rounded-pill">{{ .Confidence }}</span>
           {{end}}
         </p>
+
+        <div>
+          <span class="float-end icon-padding"><img src="../static/images/bed.svg" class="img-fluid" height="25" width="25"/> {{ .Beds }} </span>
+          <span class="float-end icon-padding"><img src="../static/images/bath.svg" class="img-fluid" height="25" width="25"/> {{ .Baths }} </span>
+          <span class="float-end"><img src="../static/images/car-alt.svg" class="img-fluid" height="25" width="25"/> {{ .Cars }} </span>
+        </div>
       </div>
 
       <div class="d-flex justify-content-between">
