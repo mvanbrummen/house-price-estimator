@@ -77,7 +77,14 @@ func resultHandler(c *gin.Context) {
 		return
 	}
 
-	model := mapValuation(valuation, imagery, attributes, c.Query("address"))
+	lastSale, err := gateway.GetLastSale(id)
+
+	if err != nil {
+		serverError(err, c)
+		return
+	}
+
+	model := mapValuation(valuation, imagery, attributes, lastSale, c.Query("address"))
 
 	c.HTML(http.StatusOK, "result.html", model)
 }

@@ -44,8 +44,6 @@ func (p *PropertyGateway) GetValuation(propertyId int) (*ValuationResponse, erro
 		return nil, err
 	}
 
-	log.Println(resp)
-
 	if resp.StatusCode() != http.StatusOK {
 		return nil, errors.New(fmt.Sprintf("Valuation returned %d status code: %s", resp.StatusCode(), getErrorMessage(resp)))
 	}
@@ -68,8 +66,6 @@ func (p *PropertyGateway) GetSuggestions(query string) (*SuggestResponse, error)
 		return nil, err
 	}
 
-	log.Println(resp)
-
 	if resp.StatusCode() != http.StatusOK {
 		return nil, errors.New(fmt.Sprintf("Suggest returned %d status code: %s", resp.StatusCode(), getErrorMessage(resp)))
 	}
@@ -90,13 +86,33 @@ func (p *PropertyGateway) GetAttributes(id int) (*AttributesResponse, error) {
 		return nil, err
 	}
 
-	log.Println(resp)
-
 	if resp.StatusCode() != http.StatusOK {
 		return nil, errors.New(fmt.Sprintf("Attributes returned %d status code: %s", resp.StatusCode(), getErrorMessage(resp)))
 	}
 
 	body := resp.Result().(*AttributesResponse)
+
+	return body, nil
+}
+
+func (p *PropertyGateway) GetLastSale(id int) (*LastSaleResponse, error) {
+	resp, err := p.client.R().
+		SetAuthToken(p.accessToken).
+		SetResult(&LastSaleResponse{}).
+		SetError(&ErrorResponse{}).
+		Get(fmt.Sprintf("%s/property-details/au/properties/%d/sales/last", p.baseUrl, id))
+
+	if err != nil {
+		return nil, err
+	}
+
+	log.Println(resp)
+
+	if resp.StatusCode() != http.StatusOK {
+		return nil, errors.New(fmt.Sprintf("Last Sale returned %d status code: %s", resp.StatusCode(), getErrorMessage(resp)))
+	}
+
+	body := resp.Result().(*LastSaleResponse)
 
 	return body, nil
 }
@@ -111,8 +127,6 @@ func (p *PropertyGateway) GetImagery(id int) (*ImageryResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	log.Println(resp)
 
 	if resp.StatusCode() != http.StatusOK {
 		return nil, errors.New(fmt.Sprintf("Imagery returned %d status code: %s", resp.StatusCode(), getErrorMessage(resp)))

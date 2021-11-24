@@ -20,7 +20,7 @@
 
       <h4>{{.Address}}</h4>
 
-      <div class="row row-cols-2 margin-bottom">
+      <div class="row row-cols-2 mb-4">
         <p class="fw-bold">
           Confidence: {{ if (eq .Confidence "HIGH") }}
           <span class="badge bg-primary rounded-pill">{{ .Confidence }}</span>
@@ -34,7 +34,20 @@
         <div>
           <span class="float-end icon-padding"><img src="../static/images/bed.svg" class="img-fluid" height="25" width="25"/> {{ .Beds }} </span>
           <span class="float-end icon-padding"><img src="../static/images/bath.svg" class="img-fluid" height="25" width="25"/> {{ .Baths }} </span>
-          <span class="float-end"><img src="../static/images/car-alt.svg" class="img-fluid" height="25" width="25"/> {{ .Cars }} </span>
+          <span class="float-end icon-padding"><img src="../static/images/car-alt.svg" class="img-fluid" height="25" width="25"/> {{ .Cars }} </span>
+          <span class="float-end icon-padding"> {{ .PropertyType }} </span>
+        </div>
+
+        <div>
+          <p class="fw-bold">
+            Land Area: <span class="fw-light">{{.LandArea}} m<sup>2</sup></span>
+          </p>
+        </div>
+
+        <div>
+          <p class="fw-bold">
+            Last Sale: <span class="fw-light">{{ .LastSaleContractDate }} for {{.LastSalePrice}}</span>
+          </p>
         </div>
       </div>
 

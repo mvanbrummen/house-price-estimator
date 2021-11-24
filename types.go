@@ -1,6 +1,14 @@
 package main
 
-import "github.com/leekchan/accounting"
+import (
+	"time"
+
+	"github.com/leekchan/accounting"
+)
+
+const (
+	layoutISO = "2006-01-02"
+)
 
 type AccessResponse struct {
 	AccessToken string `json:"access_token,omitempty"`
@@ -29,6 +37,14 @@ type ValuationResponse struct {
 	HighEstimate int    `json:"highEstimate,omitempty"`
 	LowEstimate  int    `json:"lowEstimate,omitempty"`
 }
+type LastSaleResponse struct {
+	LastSale Sale `json:"lastSale,omitempty"`
+}
+
+type Sale struct {
+	ContractDate string `json:"contractDate,omitempty"`
+	Price        int    `json:"price,omitempty"`
+}
 
 type ImageryResponse struct {
 	DefaultImage       Image   `json:"defaultImage,omitempty"`
@@ -51,21 +67,23 @@ type Error struct {
 }
 
 type Valuation struct {
-	LowEstimate        string
-	Estimate           string
-	HighEstimate       string
-	Confidence         string
-	Address            string
-	DefaultImageUrl    string
-	SecondaryImageUrls []string
-	Beds               int
-	Baths              int
-	Cars               int
-	LandArea           int
-	PropertyType       string
+	LowEstimate          string
+	Estimate             string
+	HighEstimate         string
+	Confidence           string
+	Address              string
+	DefaultImageUrl      string
+	SecondaryImageUrls   []string
+	Beds                 int
+	Baths                int
+	Cars                 int
+	LandArea             int
+	PropertyType         string
+	LastSalePrice        string
+	LastSaleContractDate string
 }
 
-func mapValuation(v *ValuationResponse, imagery *ImageryResponse, attributes *AttributesResponse, address string) *Valuation {
+func mapValuation(v *ValuationResponse, imagery *ImageryResponse, attributes *AttributesResponse, lastSale *LastSaleResponse, address string) *Valuation {
 	ac := accounting.Accounting{Symbol: "$", Precision: 0}
 
 	secondaryImages := make([]string, 0, len(imagery.SecondaryImageList))
@@ -86,7 +104,15 @@ func mapValuation(v *ValuationResponse, imagery *ImageryResponse, attributes *At
 		LandArea:     attributes.LandArea,
 		PropertyType: attributes.PropertyType,
 
+		LastSalePrice:        ac.FormatMoney(lastSale.LastSale.Price),
+		LastSaleContractDate: formatDate(lastSale.LastSale.ContractDate),
+
 		DefaultImageUrl:    imagery.DefaultImage.MediumPhotoUrl,
 		SecondaryImageUrls: secondaryImages[:12],
 	}
+}
+
+func formatDate(date string) string {
+	t, _ := time.Parse(layoutISO, date)
+	return t.Format("Jan 2006")
 }
