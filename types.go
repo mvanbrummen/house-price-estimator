@@ -8,6 +8,8 @@ import (
 
 const (
 	layoutISO = "2006-01-02"
+
+	maxImages = 12
 )
 
 type AccessResponse struct {
@@ -66,7 +68,12 @@ type Error struct {
 	Msg string `json:"msg,omitempty"`
 }
 
-type Valuation struct {
+type SuggestionModel struct {
+	Suggestion        Suggestion
+	ThumbnailPhotoUrl string
+}
+
+type ValuationModel struct {
 	LowEstimate          string
 	Estimate             string
 	HighEstimate         string
@@ -83,7 +90,7 @@ type Valuation struct {
 	LastSaleContractDate string
 }
 
-func mapValuation(v *ValuationResponse, imagery *ImageryResponse, attributes *AttributesResponse, lastSale *LastSaleResponse, address string) *Valuation {
+func mapValuation(v *ValuationResponse, imagery *ImageryResponse, attributes *AttributesResponse, lastSale *LastSaleResponse, address string) *ValuationModel {
 	ac := accounting.Accounting{Symbol: "$", Precision: 0}
 
 	secondaryImages := make([]string, 0, len(imagery.SecondaryImageList))
@@ -91,7 +98,12 @@ func mapValuation(v *ValuationResponse, imagery *ImageryResponse, attributes *At
 		secondaryImages = append(secondaryImages, i.MediumPhotoUrl)
 	}
 
-	return &Valuation{
+	// limit the amount of images on the page
+	if len(secondaryImages) > maxImages {
+		secondaryImages = secondaryImages[:maxImages]
+	}
+
+	return &ValuationModel{
 		LowEstimate:  ac.FormatMoney(v.LowEstimate),
 		Estimate:     ac.FormatMoney(v.Estimate),
 		HighEstimate: ac.FormatMoney(v.HighEstimate),
@@ -108,7 +120,7 @@ func mapValuation(v *ValuationResponse, imagery *ImageryResponse, attributes *At
 		LastSaleContractDate: formatDate(lastSale.LastSale.ContractDate),
 
 		DefaultImageUrl:    imagery.DefaultImage.MediumPhotoUrl,
-		SecondaryImageUrls: secondaryImages[:12],
+		SecondaryImageUrls: secondaryImages,
 	}
 }
 

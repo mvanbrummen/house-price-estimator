@@ -43,7 +43,22 @@ func searchHandler(c *gin.Context) {
 		return
 	}
 
-	c.HTML(http.StatusOK, "suggestions.html", suggestions)
+	models := make([]SuggestionModel, 0, len(suggestions.Suggestions))
+	for _, suggestion := range suggestions.Suggestions {
+
+		image, err := gateway.GetImagery(suggestion.PropertyId)
+
+		if err != nil {
+			log.Println(err)
+		}
+
+		models = append(models, SuggestionModel{
+			Suggestion:        suggestion,
+			ThumbnailPhotoUrl: getThumbnailUrl(image),
+		})
+	}
+
+	c.HTML(http.StatusOK, "suggestions.html", models)
 }
 
 func resultHandler(c *gin.Context) {
@@ -111,4 +126,12 @@ func mustGetEnv(key string) string {
 	}
 
 	return e
+}
+
+func getThumbnailUrl(image *ImageryResponse) string {
+	if image.DefaultImage.ThumbnailPhotoUrl != "" {
+		return image.DefaultImage.ThumbnailPhotoUrl
+	} else {
+		return "https://via.placeholder.com/120x80"
+	}
 }
